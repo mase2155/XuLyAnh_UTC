@@ -1,9 +1,12 @@
-"""Demo: tải ảnh, chọn nhiễu, chọn bộ lọc, kéo thanh trượt."""
+"""Demo: hai cột ảnh, crop biên, PSNR, SSIM và thời gian lọc."""
 
 import sys
 import tempfile
+import time
 from pathlib import Path
 
+import cv2
+import numpy as np
 import streamlit as st
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -60,8 +63,51 @@ def add_noise(image, noise: str, level: float):
     return add_poisson_noise(image, POISSON_PEAK, DEFAULT_SEED)
 
 
+def border_crop(image: np.ndarray, size: int = 100) -> np.ndarray:
+    """Góc trên trái, sát biên ảnh. Cùng kích thước cho hai cột."""
+    height, width = image.shape
+    return image[: min(size, height), : min(size, width)]
+
+
+def _psnr(clean: np.ndarray, restored: np.ndarray) -> float:
+    mse = float(np.mean((clean - restored) ** 2))
+    if mse == 0:
+        return float("inf")
+    return float(10.0 * np.log10((255.0 * 255.0) / mse))
+
+
+def _ssim(clean: np.ndarray, restored: np.ndarray) -> float:
+    """SSIM cửa sổ đều 7×7, data_range = 255."""
+    window = 7
+    clean = np.asarray(clean, dtype=np.float64)
+    restored = np.asarray(restored, dtype=np.float64)
+    kernel = (window, window)
+    mu_clean = cv2.blur(clean, kernel)
+    mu_restored = cv2.blur(restored, kernel)
+    cov_norm = (window * window) / (window * window - 1.0)
+    var_clean = cov_norm * (cv2.blur(clean * clean, kernel) - mu_clean * mu_clean)
+    var_restored = cov_norm * (
+        cv2.blur(restored * restored, kernel) - mu_restored * mu_restored
+    )
+    cov = cov_norm * (cv2.blur(clean * restored, kernel) - mu_clean * mu_restored)
+    c1 = (0.01 * 255.0) ** 2
+    c2 = (0.03 * 255.0) ** 2
+    numerator = (2.0 * mu_clean * mu_restored + c1) * (2.0 * cov + c2)
+    denominator = (mu_clean ** 2 + mu_restored ** 2 + c1) * (var_clean + var_restored + c2)
+    return float(np.mean(numerator / denominator))
+
+
+def image_scores(clean: np.ndarray, restored: np.ndarray) -> tuple[float, float]:
+    """Dùng src.metrics khi có. Chưa có thì tính tại demo, data_range = 255."""
+    try:
+        from src.metrics import psnr, ssim
+    except ImportError:
+        return _psnr(clean, restored), _ssim(clean, restored)
+    return float(psnr(clean, restored)), float(ssim(clean, restored))
+
+
 def main() -> None:
-    st.set_page_config(page_title="Khử nhiễu", layout="centered")
+    st.set_page_config(page_title="Khử nhiễu", layout="wide")
     st.title("Khử nhiễu ảnh")
     st.caption(f"Seed nhiễu cố định: {DEFAULT_SEED}.")
 
@@ -133,6 +179,7 @@ def main() -> None:
         source_name = uploaded.name
 
     noisy = add_noise(image, noise, level)
+    started = time.perf_counter()
     with st.spinner("Đang lọc..."):
         output = denoise(
             noisy,
@@ -141,13 +188,28 @@ def main() -> None:
             sigma=sigma,
             sigma_color=sigma_color,
         )
+    elapsed = time.perf_counter() - started
+    psnr_db, ssim_value = image_scores(image, output)
 
     height, width = output.shape
-    st.caption(f"{source_name}: {width}×{height}. Đã thêm nhiễu và đã lọc.")
-    st.image(output.astype("uint8"), clamp=True)
+    noisy_view = noisy.astype(np.uint8)
+    output_view = output.astype(np.uint8)
+    noisy_edge = border_crop(noisy_view)
+    output_edge = border_crop(output_view)
+    psnr_text = "∞" if psnr_db == float("inf") else f"{psnr_db:.2f}"
+
+    st.caption(
+        f"{source_name}: {width}×{height}. "
+        f"PSNR {psnr_text} dB. SSIM {ssim_value:.4f}. Thời gian {elapsed:.3f} s."
+    )
+    full_left, full_right = st.columns(2)
+    full_left.image(noisy_view, caption="Ảnh nhiễu")
+    full_right.image(output_view, caption="Sau lọc")
+    st.caption(f"Crop biên, góc trên trái, {noisy_edge.shape[1]}×{noisy_edge.shape[0]}.")
+    crop_left, crop_right = st.columns(2)
+    crop_left.image(noisy_edge, caption="Biên, ảnh nhiễu")
+    crop_right.image(output_edge, caption="Biên, sau lọc")
 
 
 if __name__ == "__main__":
-    main()
-else:
     main()
