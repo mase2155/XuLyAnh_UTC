@@ -1,0 +1,9 @@
+Sơ đồ: results/pipeline.svg
+Dán vào chương 3. Bốn bước, từ trên xuống.
+
+1. Ảnh vào. Ảnh xám float64 trong [0, 255]. Không ép các ảnh về cùng một cỡ.
+2. Sinh nhiễu, seed 42, rồi cắt về [0, 255]. Gauss σ = 10, 20, 30. Muối tiêu 5%, 10%, 20%. Poisson peak = 255.
+3. Lọc. Sáu bộ lọc tự viết. Tham số khóa như trên hình.
+4. Chỉ số. PSNR và SSIM chỉ tính khi có ảnh sạch, data_range = 255, kèm thời gian. Ảnh điện thoại không có ảnh sạch thì không đưa vào bảng PSNR. Set12 dùng để chọn tham số. BSD68 dùng để báo cáo trung bình ± độ lệch chuẩn.
+
+Ô chỉ số là bước của pipeline. Hàm PSNR và SSIM chưa có trong repo. Phần đó do thành viên còn lại viết trong src/metrics.py.

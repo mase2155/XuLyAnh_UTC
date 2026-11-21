@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="760" viewBox="0 0 760 760">
+  <rect width="760" height="760" fill="#ffffff"/>
+  <style>
+    text { font-family: "Times New Roman", Times, serif; fill: #111111; }
+    .title { font-size: 20px; font-weight: 700; }
+    .body { font-size: 16px; }
+    .note { font-size: 14px; }
+  </style>
+
+  <rect x="40" y="24" width="680" height="96" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text class="title" x="60" y="52">1. Ảnh vào</text>
+  <text class="body" x="60" y="78">Ảnh xám, float64, trong đoạn [0, 255].</text>
+  <text class="body" x="60" y="102">Mỗi ảnh giữ đúng chiều cao và chiều rộng của nó.</text>
+
+  <line x1="380" y1="120" x2="380" y2="148" stroke="#111111" stroke-width="1.5"/>
+  <polygon points="380,156 374,144 386,144" fill="#111111"/>
+
+  <rect x="40" y="156" width="680" height="128" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text class="title" x="60" y="184">2. Sinh nhiễu</text>
+  <text class="body" x="60" y="210">Seed 42. Kết quả cắt về [0, 255].</text>
+  <text class="body" x="60" y="234">Gauss: σ = 10, 20, 30.</text>
+  <text class="body" x="60" y="258">Muối tiêu: 5%, 10%, 20%. Poisson: peak = 255.</text>
+
+  <line x1="380" y1="284" x2="380" y2="312" stroke="#111111" stroke-width="1.5"/>
+  <polygon points="380,320 374,308 386,308" fill="#111111"/>
+
+  <rect x="40" y="320" width="680" height="176" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text class="title" x="60" y="348">3. Lọc</text>
+  <text class="body" x="60" y="374">Đưa về float64 trong [0, 255] trước khi lọc.</text>
+  <text class="body" x="60" y="398">Trung bình, Gauss, trung vị: cửa sổ 3 và 5.</text>
+  <text class="body" x="60" y="422">Trung vị thích nghi: cửa sổ tối đa 7.</text>
+  <text class="body" x="60" y="446">Song phương: đường kính 9, sigmaColor = 25, 50, 75.</text>
+  <text class="body" x="60" y="470">NLM: patch 7, search 21, h = σ.</text>
+
+  <line x1="380" y1="496" x2="380" y2="524" stroke="#111111" stroke-width="1.5"/>
+  <polygon points="380,532 374,520 386,520" fill="#111111"/>
+
+  <rect x="40" y="532" width="680" height="128" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text class="title" x="60" y="560">4. Chỉ số</text>
+  <text class="body" x="60" y="586">Có ảnh sạch: PSNR, SSIM (data_range = 255), thời gian.</text>
+  <text class="body" x="60" y="610">Không có ảnh sạch: chỉ xem định tính, không tính PSNR.</text>
+  <text class="body" x="60" y="634">Set12 chọn tham số. BSD68 báo cáo trung bình ± độ lệch chuẩn.</text>
+
+  <text class="note" x="40" y="700">Sơ đồ pipeline khử nhiễu, từ ảnh vào đến chỉ số.</text>
+</svg>
