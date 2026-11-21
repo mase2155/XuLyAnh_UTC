@@ -7,8 +7,8 @@ def convolve2d(image: np.ndarray, kernel: np.ndarray) -> np.ndarray:
     """Tích chập ảnh với kernel, padding phản xạ, kết quả float64.
 
     Padding kiểu reflect: điểm sát biên được phản xạ và không lặp lại chính
-    điểm biên. Kernel được lật trước khi trượt, đúng định nghĩa tích chập.
-    Ảnh kết quả cùng kích thước với ảnh đầu vào.
+    điểm biên, kể cả khi ảnh chẵn hay lẻ và nhỏ hơn kernel. Kernel được lật
+    trước khi trượt. Ảnh kết quả cùng kích thước với ảnh đầu vào.
     """
     source = np.asarray(image, dtype=np.float64)
     weights = np.asarray(kernel, dtype=np.float64)
@@ -20,8 +20,6 @@ def convolve2d(image: np.ndarray, kernel: np.ndarray) -> np.ndarray:
     kernel_height, kernel_width = weights.shape
     if kernel_height < 1 or kernel_width < 1:
         raise ValueError("kernel không được rỗng")
-    if kernel_height > source.shape[0] or kernel_width > source.shape[1]:
-        raise ValueError("kernel phải nhỏ hơn kích thước ảnh theo mỗi chiều")
 
     pad_top = kernel_height // 2
     pad_left = kernel_width // 2
