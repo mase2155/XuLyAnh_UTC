@@ -1,0 +1,13 @@
+.venv/
+__pycache__/
+*.py[cod]
+
+# Ảnh bộ dữ liệu tải về. data/README.md và data/manifest.csv vẫn được commit.
+data/**/*.png
+data/**/*.jpg
+data/**/*.jpeg
+data/**/*.bmp
+data/**/*.tif
+data/**/*.tiff
+data/**/*.gif
+data/**/*.webp
