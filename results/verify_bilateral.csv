@@ -1,0 +1,4 @@
+filter,diameter,sigma_color,sigma_space,reference,max_abs_diff,mean_abs_diff,image
+bilateral,9,25,5,cv2.bilateralFilter,1.122e-04,1.529e-05,data/set12/01.png
+bilateral,9,50,5,cv2.bilateralFilter,1.362e-04,1.462e-05,data/set12/01.png
+bilateral,9,75,5,cv2.bilateralFilter,1.129e-04,1.546e-05,data/set12/01.png
