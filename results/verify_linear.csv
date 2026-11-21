@@ -1,0 +1,5 @@
+filter,window,sigma,reference,max_abs_diff,image
+mean,3,,cv2.blur,5.684e-14,data/set12/01.png
+mean,5,,cv2.blur,5.684e-14,data/set12/01.png
+gaussian,3,0.8,cv2.GaussianBlur,8.527e-14,data/set12/01.png
+gaussian,5,1.1,cv2.GaussianBlur,8.527e-14,data/set12/01.png
