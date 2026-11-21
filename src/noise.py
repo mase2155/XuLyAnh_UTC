@@ -4,6 +4,7 @@ import numpy as np
 
 GAUSSIAN_SIGMAS = (10, 20, 30)
 SALT_PEPPER_AMOUNTS = (0.05, 0.10, 0.20)
+POISSON_PEAK = 255.0
 DEFAULT_SEED = 42
 
 
@@ -49,3 +50,28 @@ def add_salt_pepper_noise(
     flat[chosen[:salt_count]] = 255.0
     flat[chosen[salt_count : salt_count + pepper_count]] = 0.0
     return flat.reshape(source.shape)
+
+
+def add_poisson_noise(
+    image: np.ndarray,
+    peak: float = POISSON_PEAK,
+    seed: int = DEFAULT_SEED,
+) -> np.ndarray:
+    """Sinh nhiễu Poisson phụ thuộc tín hiệu rồi cắt về [0, 255].
+
+    Công thức, với x trong [0, 255] và peak > 0:
+
+        λ = x * peak / 255
+        y = clip(Poisson(λ) * 255 / peak, 0, 255)
+
+    Poisson(λ) được lấy độc lập tại từng điểm ảnh. peak = 255 nghĩa là chính
+    giá trị điểm ảnh là kỳ vọng của phân phối Poisson. Cùng seed cho cùng một mẫu.
+    """
+    if peak <= 0:
+        raise ValueError("peak phải lớn hơn 0")
+
+    source = np.asarray(image, dtype=np.float64)
+    generator = np.random.default_rng(seed)
+    rate = np.clip(source, 0.0, None) * (peak / 255.0)
+    sampled = generator.poisson(rate)
+    return np.clip(sampled * (255.0 / peak), 0.0, 255.0)
