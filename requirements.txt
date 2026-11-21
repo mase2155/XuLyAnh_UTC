@@ -1,0 +1,8 @@
+# Python 3.10+
+numpy
+opencv-python
+scikit-image
+scipy
+matplotlib
+streamlit
+bm3d
