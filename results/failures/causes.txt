@@ -1,0 +1,18 @@
+Ba vùng cắt từ data/set12/01.png (Cameraman, 256×256). Cùng cỡ 64×64, không phóng to. Lọc trên cả ảnh rồi mới cắt.
+
+1. Texture dày — hàng 192:256, cột 192:256
+   Ảnh sạch lọc Gauss cửa sổ 5, σ = 1.1.
+   Độ lệch chuẩn 21.30 xuống 12.42. MAE so với ảnh sạch: 9.64.
+   Nguyên nhân: hạt cỏ là chi tiết tần số cao. Cửa sổ Gauss coi phần đó như nhiễu nên làm mịn mất.
+
+2. Biên mảnh — hàng 144:208, cột 96:160
+   Ảnh sạch lọc trung bình cửa sổ 5.
+   MAE 25.40. Độ lớn gradient trung bình 27.70 xuống 11.24.
+   Nguyên nhân: chân tripod mỏng hơn cửa sổ 5. Mức xám của nét bị hòa với nền hai bên, nét mờ và loe ra.
+
+3. Muối tiêu 20%, cửa sổ quá nhỏ — hàng 184:248, cột 176:240
+   Nhiễu muối tiêu 20%, seed 42, thêm trên cả ảnh rồi cắt.
+   Trung vị cửa sổ 3 còn 16 điểm xung (muối ≥ 240 hoặc tiêu ≤ 15 trong khi ảnh sạch không phải xung).
+   Cùng vùng, trung vị cửa sổ 5 còn 0 điểm xung.
+   MAE lần lượt 9.58 và 11.25: cửa sổ 5 hết xung nhưng mờ cỏ hơn, nên MAE không giảm.
+   Nguyên nhân: tại mật độ 20%, một số cửa sổ 3×3 có quá nửa điểm là xung, nên trung vị giữ lại xung. Cửa sổ 5 đủ rộng để trung vị rơi vào điểm sạch.
