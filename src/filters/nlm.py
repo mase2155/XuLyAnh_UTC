@@ -1,4 +1,4 @@
-"""Non-local Means: tham số đã khóa và bản tính khoảng cách trực tiếp."""
+"""Non-local Means: tham số đã khóa và khoảng cách patch bằng ảnh tích phân."""
 
 import numpy as np
 
@@ -23,6 +23,35 @@ def _reflect_pad(image: np.ndarray, pad: int) -> np.ndarray:
     if source.ndim != 2:
         raise ValueError("ảnh phải là mảng 2 chiều")
     return np.pad(source, pad, mode="reflect")
+
+
+def integral_image(values: np.ndarray) -> np.ndarray:
+    """Ảnh tích phân, hàng 0 và cột 0 bằng 0.
+
+    ``integral[y + 1, x + 1]`` là tổng ``values[:y + 1, :x + 1]``.
+    """
+    cumulative = np.cumsum(np.cumsum(np.asarray(values, dtype=np.float64), axis=0), axis=1)
+    integral = np.zeros((cumulative.shape[0] + 1, cumulative.shape[1] + 1), dtype=np.float64)
+    integral[1:, 1:] = cumulative
+    return integral
+
+
+def mean_patch_distance(diff2: np.ndarray, patch_size: int = NLM_PATCH_SIZE) -> np.ndarray:
+    """Trung bình ``diff2`` trên từng patch, tra bằng ảnh tích phân.
+
+    ``diff2`` có kích thước ``(H + patch - 1, W + patch - 1)``. Kết quả là
+    bản đồ ``d²`` kích thước ``(H, W)``.
+    """
+    integral = integral_image(diff2)
+    height = diff2.shape[0] - patch_size + 1
+    width = diff2.shape[1] - patch_size + 1
+    total = (
+        integral[patch_size : patch_size + height, patch_size : patch_size + width]
+        - integral[:height, patch_size : patch_size + width]
+        - integral[patch_size : patch_size + height, :width]
+        + integral[:height, :width]
+    )
+    return total / (patch_size * patch_size)
 
 
 def patch_distance(image: np.ndarray, y0: int, x0: int, y1: int, x1: int) -> float:
@@ -57,8 +86,9 @@ def patch_weight(
 def nlm_filter(image: np.ndarray, sigma: float) -> np.ndarray:
     """Lọc NLM với patch 7, cửa sổ tìm 21 và h = σ.
 
-    Khoảng cách patch là trung bình bình phương hiệu, tính trực tiếp trên
-    từng độ lệch của cửa sổ tìm kiếm. Viền dùng padding phản xạ.
+    Khoảng cách patch là trung bình bình phương hiệu. Với mỗi độ lệch trong
+    cửa sổ tìm kiếm, tổng trên patch được tra từ ảnh tích phân của bình
+    phương hiệu. Viền dùng padding phản xạ.
     """
     source = np.asarray(image, dtype=np.float64)
     if source.ndim != 2:
@@ -89,8 +119,7 @@ def nlm_filter(image: np.ndarray, sigma: float) -> np.ndarray:
                 x_start + dx : x_start + dx + length_x,
             ]
             diff2 = (original - shifted) ** 2
-            windows = np.lib.stride_tricks.sliding_window_view(diff2, (patch, patch))
-            distance = windows.mean(axis=(-2, -1))
+            distance = mean_patch_distance(diff2, patch)
             weight = np.exp(-distance / (h * h))
             values = padded[
                 origin + dy : origin + dy + height,
