@@ -54,6 +54,28 @@ def mean_patch_distance(diff2: np.ndarray, patch_size: int = NLM_PATCH_SIZE) -> 
     return total / (patch_size * patch_size)
 
 
+def _mean_patch_distance_batch(diff2: np.ndarray, patch_size: int) -> np.ndarray:
+    """Bản nhiều độ lệch của :func:`mean_patch_distance`.
+
+    ``diff2`` có dạng ``(K, Ly, Lx)``. Kết quả có dạng ``(K, H, W)``.
+    """
+    cumulative = np.cumsum(np.cumsum(diff2, axis=1), axis=2)
+    integral = np.zeros(
+        (diff2.shape[0], diff2.shape[1] + 1, diff2.shape[2] + 1),
+        dtype=np.float64,
+    )
+    integral[:, 1:, 1:] = cumulative
+    height = diff2.shape[1] - patch_size + 1
+    width = diff2.shape[2] - patch_size + 1
+    total = (
+        integral[:, patch_size : patch_size + height, patch_size : patch_size + width]
+        - integral[:, :height, patch_size : patch_size + width]
+        - integral[:, patch_size : patch_size + height, :width]
+        + integral[:, :height, :width]
+    )
+    return total / (patch_size * patch_size)
+
+
 def patch_distance(image: np.ndarray, y0: int, x0: int, y1: int, x1: int) -> float:
     """Trung bình bình phương hiệu giữa hai patch 7×7."""
     radius = NLM_PATCH_SIZE // 2
@@ -86,9 +108,9 @@ def patch_weight(
 def nlm_filter(image: np.ndarray, sigma: float) -> np.ndarray:
     """Lọc NLM với patch 7, cửa sổ tìm 21 và h = σ.
 
-    Khoảng cách patch là trung bình bình phương hiệu. Với mỗi độ lệch trong
-    cửa sổ tìm kiếm, tổng trên patch được tra từ ảnh tích phân của bình
-    phương hiệu. Viền dùng padding phản xạ.
+    Khoảng cách patch là trung bình bình phương hiệu, tra từ ảnh tích phân.
+    Mỗi hàng độ lệch dọc được tính cùng lúc cho mọi độ lệch ngang. Viền dùng
+    padding phản xạ.
     """
     source = np.asarray(image, dtype=np.float64)
     if source.ndim != 2:
@@ -107,25 +129,25 @@ def nlm_filter(image: np.ndarray, sigma: float) -> np.ndarray:
     weighted = np.zeros((height, width), dtype=np.float64)
     total_weight = np.zeros((height, width), dtype=np.float64)
 
-    for dy in range(-search_radius, search_radius + 1):
-        for dx in range(-search_radius, search_radius + 1):
-            y_start = origin - patch_radius
-            x_start = origin - patch_radius
-            length_y = height + patch - 1
-            length_x = width + patch - 1
-            original = padded[y_start : y_start + length_y, x_start : x_start + length_x]
-            shifted = padded[
-                y_start + dy : y_start + dy + length_y,
-                x_start + dx : x_start + dx + length_x,
-            ]
-            diff2 = (original - shifted) ** 2
-            distance = mean_patch_distance(diff2, patch)
-            weight = np.exp(-distance / (h * h))
-            values = padded[
-                origin + dy : origin + dy + height,
-                origin + dx : origin + dx + width,
-            ]
-            weighted += weight * values
-            total_weight += weight
+    offsets = np.arange(-search_radius, search_radius + 1)
+    length_y = height + patch - 1
+    length_x = width + patch - 1
+    y_base = origin - patch_radius
+    x_base = origin - patch_radius
+    original = padded[y_base : y_base + length_y, x_base : x_base + length_x]
+    scale = h * h
+
+    for dy in offsets:
+        band = padded[y_base + dy : y_base + dy + length_y]
+        shifted_view = np.lib.stride_tricks.sliding_window_view(band, length_x, axis=1)
+        shifted = np.moveaxis(shifted_view[:, x_base + offsets, :], 1, 0)
+        distance = _mean_patch_distance_batch((shifted - original) ** 2, patch)
+        weight = np.exp(-distance / scale)
+
+        value_band = padded[origin + dy : origin + dy + height]
+        value_view = np.lib.stride_tricks.sliding_window_view(value_band, width, axis=1)
+        values = np.moveaxis(value_view[:, origin + offsets, :], 1, 0)
+        weighted += np.sum(weight * values, axis=0)
+        total_weight += np.sum(weight, axis=0)
 
     return weighted / total_weight

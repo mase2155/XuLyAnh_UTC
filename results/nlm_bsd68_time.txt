@@ -1,0 +1,3 @@
+Ảnh 321×481, cỡ một ảnh BSD68.
+NLM: patch 7, search 21, h = σ = 20.
+Thời gian: 2.991 giây/ảnh.
