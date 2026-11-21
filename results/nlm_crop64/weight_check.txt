@@ -1,0 +1,13 @@
+Crop 64×64 từ Cameraman, nhiễu Gauss σ = 20, seed 42.
+Vị trí crop: dòng 40–104, cột 90–154.
+NLM: patch 7, search 21, h = σ = 20.
+
+Cặp patch: (32, 32) và (32, 33).
+d² = 1844.6885613270
+weight = 0.0099347020
+weight tính từ exp(-d² / h²) = 0.0099347020
+lệch = 0
+trọng số của patch với chính nó = 1
+điểm (32, 32) từ bộ lọc = 84.4250998660
+điểm (32, 32) tính lại từ các trọng số = 84.4250998660
+lệch điểm = 1.421e-14
