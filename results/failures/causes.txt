@@ -1,4 +1,4 @@
-Ba vùng cắt từ data/set12/01.png (Cameraman, 256×256). Cùng cỡ 64×64, không phóng to. Lọc trên cả ảnh rồi mới cắt.
+﻿Ba vùng cắt từ data/set12/01.png (Cameraman, 256×256). Cùng cỡ 64×64, không phóng to. Lọc trên cả ảnh rồi mới cắt.
 
 1. Texture dày — hàng 192:256, cột 192:256
    Ảnh sạch lọc Gauss cửa sổ 5, σ = 1.1.
@@ -12,7 +12,7 @@ Ba vùng cắt từ data/set12/01.png (Cameraman, 256×256). Cùng cỡ 64×64, 
 
 3. Muối tiêu 20%, cửa sổ quá nhỏ — hàng 184:248, cột 176:240
    Nhiễu muối tiêu 20%, seed 42, thêm trên cả ảnh rồi cắt.
-   Trung vị cửa sổ 3 còn 16 điểm xung (muối ≥ 240 hoặc tiêu ≤ 15 trong khi ảnh sạch không phải xung).
-   Cùng vùng, trung vị cửa sổ 5 còn 0 điểm xung.
+   Trung vị cửa sổ 3 còn 16 điểm vốn là muối (≥ 240) hoặc tiêu (≤ 15) của ảnh nhiễu, ảnh sạch không phải xung, và sau lọc vẫn còn mức đó.
+   Cùng vùng, trung vị cửa sổ 5 còn 0 điểm như vậy.
    MAE lần lượt 9.58 và 11.25: cửa sổ 5 hết xung nhưng mờ cỏ hơn, nên MAE không giảm.
    Nguyên nhân: tại mật độ 20%, một số cửa sổ 3×3 có quá nửa điểm là xung, nên trung vị giữ lại xung. Cửa sổ 5 đủ rộng để trung vị rơi vào điểm sạch.
