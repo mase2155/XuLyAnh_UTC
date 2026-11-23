@@ -26,6 +26,7 @@ from src.noise import (
 )
 from src.params import nlm_h
 from src.pipeline import METHODS, denoise
+from src.recommend import recommendation_line
 
 SAMPLE = ROOT / "data" / "set12" / "01.png"
 
@@ -202,6 +203,7 @@ def main() -> None:
         f"{source_name}: {width}×{height}. "
         f"PSNR {psnr_text} dB. SSIM {ssim_value:.4f}. Thời gian {elapsed:.3f} s."
     )
+    st.caption(recommendation_line(noise, level))
     full_left, full_right = st.columns(2)
     full_left.image(noisy_view, caption="Ảnh nhiễu")
     full_right.image(output_view, caption="Sau lọc")
