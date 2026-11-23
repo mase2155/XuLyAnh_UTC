@@ -29,6 +29,8 @@ from src.pipeline import METHODS, denoise
 from src.recommend import recommendation_line
 
 SAMPLE = ROOT / "data" / "set12" / "01.png"
+PHONE_DIR = ROOT / "data" / "phone"
+PHONE_SUFFIXES = {".png", ".jpg", ".jpeg", ".bmp", ".tif", ".tiff"}
 
 NOISE_LABELS = {
     "gaussian": "Gauss",
@@ -43,6 +45,16 @@ FILTER_LABELS = {
     "bilateral": "Song phương",
     "nlm": "NLM",
 }
+
+
+def list_phone_images() -> list[Path]:
+    if not PHONE_DIR.is_dir():
+        return []
+    return sorted(
+        path
+        for path in PHONE_DIR.iterdir()
+        if path.is_file() and path.suffix.lower() in PHONE_SUFFIXES
+    )
 
 
 def load_upload(data: bytes, name: str):
@@ -110,35 +122,58 @@ def image_scores(clean: np.ndarray, restored: np.ndarray) -> tuple[float, float]
 def main() -> None:
     st.set_page_config(page_title="Khử nhiễu", layout="wide")
     st.title("Khử nhiễu ảnh")
-    st.caption(f"Seed nhiễu cố định: {DEFAULT_SEED}.")
 
-    source_mode = st.radio("Nguồn ảnh", ["Ảnh mẫu", "Tải ảnh"], horizontal=True)
+    source_mode = st.radio(
+        "Nguồn ảnh",
+        ["Ảnh mẫu", "Tải ảnh", "Ảnh điện thoại"],
+        horizontal=True,
+    )
+    has_reference = source_mode != "Ảnh điện thoại"
     uploaded = None
+    phone_path = None
     if source_mode == "Tải ảnh":
         uploaded = st.file_uploader(
             "Chọn ảnh",
             type=["png", "jpg", "jpeg", "bmp", "tif", "tiff"],
         )
-
-    noise = st.selectbox(
-        "Loại nhiễu",
-        list(NOISE_LABELS),
-        format_func=lambda key: NOISE_LABELS[key],
-    )
-    if noise == "gaussian":
-        level = float(st.select_slider("σ nhiễu", options=list(GAUSSIAN_SIGMAS), value=20))
-    elif noise == "salt_pepper":
-        level = float(
-            st.select_slider(
-                "Tỉ lệ muối tiêu",
-                options=list(SALT_PEPPER_AMOUNTS),
-                value=0.10,
-                format_func=lambda value: f"{int(round(value * 100))}%",
+    elif source_mode == "Ảnh điện thoại":
+        phone_paths = list_phone_images()
+        if not phone_paths:
+            st.info(
+                "Hãy để 8–15 ảnh điện thoại vào data/phone. "
+                "Những ảnh này không có ảnh sạch và không được tính PSNR."
             )
+            st.stop()
+        phone_path = st.selectbox(
+            "Ảnh điện thoại",
+            phone_paths,
+            format_func=lambda path: path.name,
         )
-    else:
-        level = float(POISSON_PEAK)
-        st.caption(f"Poisson peak = {POISSON_PEAK:g}.")
+        st.caption(f"{len(phone_paths)} ảnh trong data/phone. Không tính PSNR.")
+
+    noise = None
+    level = None
+    if has_reference:
+        st.caption(f"Seed nhiễu cố định: {DEFAULT_SEED}.")
+        noise = st.selectbox(
+            "Loại nhiễu",
+            list(NOISE_LABELS),
+            format_func=lambda key: NOISE_LABELS[key],
+        )
+        if noise == "gaussian":
+            level = float(st.select_slider("σ nhiễu", options=list(GAUSSIAN_SIGMAS), value=20))
+        elif noise == "salt_pepper":
+            level = float(
+                st.select_slider(
+                    "Tỉ lệ muối tiêu",
+                    options=list(SALT_PEPPER_AMOUNTS),
+                    value=0.10,
+                    format_func=lambda value: f"{int(round(value * 100))}%",
+                )
+            )
+        else:
+            level = float(POISSON_PEAK)
+            st.caption(f"Poisson peak = {POISSON_PEAK:g}.")
 
     method = st.selectbox(
         "Bộ lọc",
@@ -172,44 +207,56 @@ def main() -> None:
             st.stop()
         image = load_grayscale(SAMPLE)
         source_name = "Set12 01.png"
-    elif uploaded is None:
-        st.info("Hãy tải một ảnh.")
-        st.stop()
-    else:
+    elif source_mode == "Tải ảnh":
+        if uploaded is None:
+            st.info("Hãy tải một ảnh.")
+            st.stop()
         image = load_upload(uploaded.getvalue(), uploaded.name)
         source_name = uploaded.name
+    else:
+        image = load_grayscale(phone_path)
+        source_name = phone_path.name
 
-    noisy = add_noise(image, noise, level)
+    source_for_filter = add_noise(image, noise, level) if has_reference else image
     started = time.perf_counter()
     with st.spinner("Đang lọc..."):
         output = denoise(
-            noisy,
+            source_for_filter,
             method,
             size=size,
             sigma=sigma,
             sigma_color=sigma_color,
         )
     elapsed = time.perf_counter() - started
-    psnr_db, ssim_value = image_scores(image, output)
 
     height, width = output.shape
-    noisy_view = noisy.astype(np.uint8)
+    input_view = source_for_filter.astype(np.uint8)
     output_view = output.astype(np.uint8)
-    noisy_edge = border_crop(noisy_view)
+    input_edge = border_crop(input_view)
     output_edge = border_crop(output_view)
-    psnr_text = "∞" if psnr_db == float("inf") else f"{psnr_db:.2f}"
-
-    st.caption(
-        f"{source_name}: {width}×{height}. "
-        f"PSNR {psnr_text} dB. SSIM {ssim_value:.4f}. Thời gian {elapsed:.3f} s."
-    )
-    st.caption(recommendation_line(noise, level))
+    if has_reference:
+        psnr_db, ssim_value = image_scores(image, output)
+        psnr_text = "∞" if psnr_db == float("inf") else f"{psnr_db:.2f}"
+        st.caption(
+            f"{source_name}: {width}×{height}. "
+            f"PSNR {psnr_text} dB. SSIM {ssim_value:.4f}. Thời gian {elapsed:.3f} s."
+        )
+        st.caption(recommendation_line(noise, level))
+        input_caption = "Ảnh nhiễu"
+        edge_caption = "Biên, ảnh nhiễu"
+    else:
+        st.caption(
+            f"{source_name}: {width}×{height}. "
+            f"Không có ảnh sạch. Không tính PSNR, SSIM. Thời gian {elapsed:.3f} s."
+        )
+        input_caption = "Ảnh điện thoại"
+        edge_caption = "Biên, ảnh điện thoại"
     full_left, full_right = st.columns(2)
-    full_left.image(noisy_view, caption="Ảnh nhiễu")
+    full_left.image(input_view, caption=input_caption)
     full_right.image(output_view, caption="Sau lọc")
-    st.caption(f"Crop biên, góc trên trái, {noisy_edge.shape[1]}×{noisy_edge.shape[0]}.")
+    st.caption(f"Crop biên, góc trên trái, {input_edge.shape[1]}×{input_edge.shape[0]}.")
     crop_left, crop_right = st.columns(2)
-    crop_left.image(noisy_edge, caption="Biên, ảnh nhiễu")
+    crop_left.image(input_edge, caption=edge_caption)
     crop_right.image(output_edge, caption="Biên, sau lọc")
 
 
