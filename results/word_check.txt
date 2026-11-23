@@ -1,21 +1,31 @@
-Đối chiếu số trong Bao cao De 2.docx với phép đo lại trên Set12 01.png.
+08/12. Chạy lại thí nghiệm và đối chiếu CSV với số trong Bao cao De 2.docx.
 
-results/bsd68_summary.csv chưa có, nên không có số BSD68 để đối chiếu.
-results/sample_summary.csv là bốn ảnh mẫu tự vẽ. Không chép file đó vào báo cáo.
-Bảng chương 4 trong Word vẫn chưa có số PSNR trung bình.
+1. experiments/run_chapter4.py
+Mã thoát: 1.
+Chưa có ảnh trong data/bsd68. Bảng chương 4 cần bộ BSD68.
+results/bsd68_summary.csv tồn tại: False.
+Word nói file này chưa có và không ghi giá trị dB của mục tiêu 3: có
 
-Các số đã viết khớp phép đo lại:
-- Lọc trung bình cửa sổ 3 và 5, sai tuyệt đối lớn nhất 5,684×10⁻¹⁴ so với cv2.blur.
-- Gauss cửa sổ 3, σ = 0,8, và cửa sổ 5, σ = 1,1, sai tuyệt đối lớn nhất 8,527×10⁻¹⁴ so với cv2.GaussianBlur.
-- Song phương, sai tuyệt đối lớn nhất 1,362×10⁻⁴, tại sigmaColor = 50. Cả ba mức đều dưới 1 mức xám.
-- Trung vị cửa sổ 3: 0,35% điểm lệch hơn 1 mức xám, lệch lớn nhất 27, chỉ ở biên. Phần trong ảnh lệch 0.
-- Trung vị cửa sổ 5: 0,43% điểm, lệch lớn nhất 28, chỉ ở biên. Phần trong ảnh lệch 0.
-- Gauss σ = 20, seed 42: PSNR ảnh nhiễu 22,43 dB, sau trung bình cửa sổ 3 là 24,94 dB.
-- Muối tiêu 10%, seed 42: PSNR ảnh nhiễu 15,07 dB, sau trung vị cửa sổ 3 là 26,28 dB.
-- Vùng cỏ: độ lệch chuẩn 21,30 xuống 12,42, MAE 9,64.
-- Chân tripod: MAE 25,40, độ lớn gradient 27,70 xuống 11,24.
-- Muối tiêu 20%, seed 42, vùng hàng 184–248 cột 176–240: 16 điểm vốn là muối (≥ 240) hoặc tiêu (≤ 15), ảnh sạch không phải xung, vẫn còn sau trung vị cửa sổ 3. Cửa sổ 5 còn 0 điểm như vậy. MAE 9,58 và 11,25.
-- NLM, h = 20, patch 7, search 21, trên ảnh nhiễu Gauss σ = 20 đã làm tròn uint8: 0,86% điểm lệch hơn 1 mức xám, sai tuyệt đối lớn nhất 7,940, sai tuyệt đối trung bình 0,270.
+2. experiments/run_samples.py
+Mã thoát: 0.
+Đã ghi 4 ảnh mẫu vào data\samples.
+Đã ghi results\sample_summary.csv. Đây không phải bảng BSD68.
+42 dòng. Cột giống bảng chương 4: noise, level, method, psnr_mean, psnr_std.
+Số dòng kết quả: 42. Kỳ vọng 42.
+Số PSNR của ảnh mẫu có nằm trong Word: không. Đúng, vì đây không phải bảng chương 4.
 
-Thời gian trong bảng 3.2 là một lần gọi, không đo lại trong lần đối chiếu này.
-Mốc NLM 2,991 giây lấy từ results/nlm_speed.md, không đo lại trên ảnh 321×481.
+3. results/verify_linear.csv đối với Word
+mean cửa sổ 3: CSV 5.684e-14. Word có 5,684: có.
+mean cửa sổ 5: CSV 5.684e-14. Word có 5,684: có.
+gaussian cửa sổ 3: CSV 8.527e-14. Word có 8,527: có.
+gaussian cửa sổ 5: CSV 8.527e-14. Word có 8,527: có.
+
+4. results/verify_bilateral.csv đối với Word
+sigmaColor 25: CSV max 1.122e-04, mean 1.529e-05.
+sigmaColor 50: CSV max 1.362e-04, mean 1.462e-05.
+sigmaColor 75: CSV max 1.129e-04, mean 1.546e-05.
+Word ghi sai tuyệt đối lớn nhất 1,362×10⁻⁴: có.
+
+Kết luận lần chạy này: bảng chương 4 chưa chạy được vì chưa có data/bsd68.
+Hai file verify khớp các số sai lệch đang viết trong Word.
+Bảng ảnh mẫu vừa ghi lại, và không có số nào của bảng đó trong Word.
