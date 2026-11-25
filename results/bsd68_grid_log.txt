@@ -1,0 +1,4 @@
+Lệnh: experiments/run_grid.py trên data/bsd68, seed 42.
+Mỗi mức nhiễu dùng sáu bộ tham số đã chọn trong results/chosen_params.csv.
+Bảy lần gọi, mỗi lần 408 dòng. Tổng results/bsd68_grid.csv có 2856 dòng.
+Thời gian chạy khoảng 2041 giây.
