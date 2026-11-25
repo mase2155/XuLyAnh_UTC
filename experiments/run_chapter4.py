@@ -4,7 +4,6 @@ import csv
 import sys
 from pathlib import Path
 
-import cv2
 import numpy as np
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -67,36 +66,9 @@ def filter_kwargs(method: str, noise: str, level: float) -> dict:
     return {}
 
 
-def _psnr(clean: np.ndarray, restored: np.ndarray) -> float:
-    mse = float(np.mean((clean - restored) ** 2))
-    if mse == 0:
-        return float("inf")
-    return float(10.0 * np.log10((255.0 * 255.0) / mse))
-
-
-def _ssim(clean: np.ndarray, restored: np.ndarray) -> float:
-    window = 7
-    kernel = (window, window)
-    mu_clean = cv2.blur(clean, kernel)
-    mu_restored = cv2.blur(restored, kernel)
-    cov_norm = (window * window) / (window * window - 1.0)
-    var_clean = cov_norm * (cv2.blur(clean * clean, kernel) - mu_clean * mu_clean)
-    var_restored = cov_norm * (
-        cv2.blur(restored * restored, kernel) - mu_restored * mu_restored
-    )
-    cov = cov_norm * (cv2.blur(clean * restored, kernel) - mu_clean * mu_restored)
-    c1 = (0.01 * 255.0) ** 2
-    c2 = (0.03 * 255.0) ** 2
-    numerator = (2.0 * mu_clean * mu_restored + c1) * (2.0 * cov + c2)
-    denominator = (mu_clean ** 2 + mu_restored ** 2 + c1) * (var_clean + var_restored + c2)
-    return float(np.mean(numerator / denominator))
-
-
 def image_scores(clean: np.ndarray, restored: np.ndarray) -> tuple[float, float]:
-    try:
-        from src.metrics import psnr, ssim
-    except ImportError:
-        return _psnr(clean, restored), _ssim(clean, restored)
+    from src.metrics import psnr, ssim
+
     return float(psnr(clean, restored)), float(ssim(clean, restored))
 
 
