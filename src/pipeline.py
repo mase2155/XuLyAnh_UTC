@@ -39,6 +39,7 @@ def _prepare(image: np.ndarray) -> np.ndarray:
 def denoise(
     image: np.ndarray,
     method: str,
+    params: dict | None = None,
     *,
     size: int = 3,
     sigma: float | None = None,
@@ -46,12 +47,20 @@ def denoise(
 ) -> np.ndarray:
     """Gọi một trong sáu bộ lọc tự viết.
 
+    Chữ ký đã chốt là ``denoise(image, method, params)``.
+    ``params`` có thể chứa ``size``, ``sigma`` và ``sigma_color``.
     ``size`` là cửa sổ của lọc trung bình, Gauss và trung vị.
     ``sigma`` là σ của nhân Gauss, hoặc σ nhiễu khi ``method`` là ``nlm``.
     ``sigma_color`` dùng cho bilateral. Trung vị thích nghi luôn dùng cửa sổ tối đa 7.
     Ảnh vào được đưa về float64 trong [0, 255]. Kết quả cùng kích thước ảnh vào
     và nằm trong đoạn đó.
     """
+    if params is not None:
+        size = int(params.get("size", size))
+        if "sigma" in params:
+            sigma = params["sigma"]
+        if "sigma_color" in params:
+            sigma_color = float(params["sigma_color"])
     source = _prepare(image)
     if method == "mean":
         output = mean_filter(source, size)
