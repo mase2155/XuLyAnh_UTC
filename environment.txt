@@ -1,0 +1,10 @@
+Python 3.12.10
+Hệ điều hành: Windows-11-10.0.26100-SP0
+Máy: AMD64, processor: Intel64 Family 6 Model 158 Stepping 10, GenuineIntel
+numpy 2.5.5
+cv2 5.1.0
+skimage 0.26.0
+scipy 1.18.1
+matplotlib 3.11.2
+bm3d 4.0.3
+streamlit 1.67.0
