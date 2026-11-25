@@ -1,0 +1,5 @@
+Lệnh: experiments/run_grid.py trên data/set12, seed 42.
+Cấu hình: TUNING_CONFIGS, 13 bộ lọc, 7 mức nhiễu.
+12 ảnh × 7 mức × 13 bộ = 1092 dòng.
+File kết quả: results/set12_tuning.csv.
+Thời gian chạy khoảng 2179 giây.
