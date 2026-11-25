@@ -1,0 +1,5 @@
+BM3D trên data/set12/01.png, nhiễu Gauss σ = 20, seed 42.
+Gọi bm3d.bm3d với ảnh float64 trong [0, 255] và sigma_psd = 20.
+PSNR ảnh nhiễu so với ảnh sạch: 22.427139 dB.
+PSNR ảnh sau BM3D so với ảnh sạch: 30.427133 dB.
+Ảnh ra của thư viện vượt một chút khỏi [0, 255]. PSNR tính trên ảnh ra chưa cắt.
