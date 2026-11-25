@@ -1,0 +1,13 @@
+image,noise,level,method,params,psnr,ssim,ms
+01.png,gaussian,10,mean,"{""size"":3}",25.724299,0.786919,3.083
+01.png,gaussian,10,median,"{""size"":3}",26.669070,0.772149,28.073
+01.png,gaussian,10,gaussian,"{""sigma"":0.8,""size"":3}",27.754411,0.821675,3.359
+01.png,salt_pepper,0.05,mean,"{""size"":3}",23.406487,0.535710,3.182
+01.png,salt_pepper,0.05,median,"{""size"":3}",26.928701,0.871638,16.740
+01.png,salt_pepper,0.05,gaussian,"{""sigma"":0.8,""size"":3}",23.860894,0.544083,3.347
+02.png,gaussian,10,mean,"{""size"":3}",31.287016,0.813745,3.120
+02.png,gaussian,10,median,"{""size"":3}",31.791580,0.786675,18.098
+02.png,gaussian,10,gaussian,"{""sigma"":0.8,""size"":3}",32.642035,0.834942,3.380
+02.png,salt_pepper,0.05,mean,"{""size"":3}",26.313958,0.562963,3.172
+02.png,salt_pepper,0.05,median,"{""size"":3}",33.853705,0.890743,18.400
+02.png,salt_pepper,0.05,gaussian,"{""sigma"":0.8,""size"":3}",25.846301,0.552080,3.245
