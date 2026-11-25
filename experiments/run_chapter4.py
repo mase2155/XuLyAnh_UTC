@@ -1,6 +1,7 @@
 """Một lệnh ghi bảng chương 4 vào results/bsd68_summary.csv."""
 
 import csv
+import json
 import sys
 from pathlib import Path
 
@@ -22,6 +23,7 @@ from src.pipeline import METHODS, denoise
 
 DATA_DIR = ROOT / "data" / "bsd68"
 OUTPUT = ROOT / "results" / "bsd68_summary.csv"
+CHOSEN = ROOT / "results" / "chosen_params.csv"
 IMAGE_SUFFIXES = {".png", ".jpg", ".jpeg", ".bmp", ".tif", ".tiff"}
 
 NOISE_LEVELS = (
@@ -53,7 +55,22 @@ def add_noise(image: np.ndarray, noise: str, level: float) -> np.ndarray:
     return add_poisson_noise(image, level, DEFAULT_SEED)
 
 
-def filter_kwargs(method: str, noise: str, level: float) -> dict:
+def load_chosen(path: Path = CHOSEN) -> dict[tuple[str, str, str], dict]:
+    """Tham số đã chọn trên Set12. Khóa là nhiễu, mức, phương pháp."""
+    if not path.is_file():
+        return {}
+    chosen = {}
+    with path.open(encoding="utf-8", newline="") as handle:
+        for row in csv.DictReader(handle):
+            chosen[(row["noise"], f"{float(row['level']):g}", row["method"])] = json.loads(row["params"])
+    return chosen
+
+
+def filter_kwargs(method: str, noise: str, level: float, chosen: dict | None = None) -> dict:
+    if chosen:
+        params = chosen.get((noise, f"{float(level):g}", method))
+        if params is not None:
+            return params
     if method in ("mean", "median"):
         return {"size": 5}
     if method == "gaussian":
@@ -110,13 +127,14 @@ def write_table(rows: list[dict[str, str]], path: Path) -> None:
 
 
 def evaluate(paths: list[Path]) -> list[dict[str, str]]:
+    chosen = load_chosen()
     scores: dict[tuple[str, float, str], list[float]] = {}
     for path in paths:
         clean = load_grayscale(path)
         for noise, level in NOISE_LEVELS:
             noisy = add_noise(clean, noise, level)
             for method in METHODS:
-                restored = denoise(noisy, method, **filter_kwargs(method, noise, level))
+                restored = denoise(noisy, method, filter_kwargs(method, noise, level, chosen))
                 psnr_db, _ssim_value = image_scores(clean, restored)
                 scores.setdefault((noise, level, method), []).append(psnr_db)
     return summarize(scores)
