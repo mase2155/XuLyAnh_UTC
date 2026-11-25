@@ -1,0 +1,4 @@
+case,psnr_ours,psnr_skimage,psnr_abs_diff,ssim_ours,ssim_skimage,ssim_abs_diff
+identical,inf,inf,0,1.000000,1.000000,0.000000e+00
+gauss20,22.427139,22.427139,0.000000e+00,0.421061,0.423998,2.937082e-03
+mean3_on_gauss20,24.940923,24.940923,0.000000e+00,0.660884,0.664633,3.748290e-03
